@@ -1,0 +1,96 @@
+[project]
+name = "emailme"
+version = "0.2.0"
+description = "Envio simples de emails para si mesmo via SMTP (Gmail por padrão)."
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [{ name = "Lucas Hideki" }]
+dependencies = ["python-dotenv>=1.1"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Communications :: Email",
+    "Typing :: Typed",
+]
+
+[project.scripts]
+emailme = "emailme.cli:run"
+
+[dependency-groups]
+dev = [
+    "aiosmtpd>=1.4.6",
+    "hypothesis>=6.140",
+    "mypy>=1.18",
+    "pytest>=8.4",
+    "pytest-cov>=7.0",
+    "ruff>=0.13",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.17,<0.13"]
+build-backend = "uv_build"
+
+# --------------------------------------------------------------------------- #
+# Ferramentas
+# --------------------------------------------------------------------------- #
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["src", "tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--import-mode=importlib",
+    "--doctest-modules",
+]
+markers = [
+    "unit: testes unitários rápidos, sem I/O",
+    "property: testes baseados em propriedades (hypothesis)",
+    "contract: testes de contrato aplicados a todas as implementações de Transport",
+    "integration: testes contra um servidor SMTP local real",
+    "e2e: testes ponta a ponta executando a CLI em subprocesso",
+]
+filterwarnings = [
+    "error",
+    # Ruído do aiosmtpd (servidor usado só nos testes): AUTH sem TLS é intencional
+    # no servidor local, e ele não fecha explicitamente os StreamWriters no 3.14.
+    "ignore:Requiring AUTH while not requiring TLS:UserWarning:aiosmtpd",
+    "ignore:unclosed <StreamWriter:ResourceWarning",
+]
+
+[tool.coverage.run]
+source = ["emailme"]
+branch = true
+# Mede também os subprocessos disparados pelos testes e2e.
+patch = ["subprocess"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 95
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\.", "if __name__ == .__main__.:"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "B", "UP", "SIM", "RUF", "PT", "N", "C4", "PL", "TRY", "S",
+]
+ignore = ["TRY003", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S603", "PLR0913", "PLC0415"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+mypy_path = "src"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["aiosmtpd.*"]
+ignore_missing_imports = true

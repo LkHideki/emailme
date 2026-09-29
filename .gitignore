@@ -1,3 +1,20 @@
+# Segredos
 .env
-.venv
-.mypy_cache
+
+# Ambiente / build
+.venv/
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# Ferramentas
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
